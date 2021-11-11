@@ -147,8 +147,6 @@ public class Main
 String text = _input.getText(Interval.of(_tokenStartCharIndex, _input.index()));
 ```
 
-​ 另外，由于antlr默认的词法识别模式，若不满足的字符序列在行末，text中会带上该行的换行符号 ，所以可以使用`text.trim()`来进行调整。
-
 ​ 最后，按照要求生成对应的报错语句，如果没有报错语句的生成就逐行打印词法单元的信息。
 
 ​ 至此，我们就实现了词法单元Token的识别与错误词法单元报错。
