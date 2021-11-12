@@ -156,7 +156,7 @@ String text = _input.getText(Interval.of(_tokenStartCharIndex, _input.index()));
 
 * Token的符号名
 * Token的text
-* Token的行号，
+* Token的行号
 
 后两者都存储在了Token的成员变量当中。而对于Token的符号名，观察antlr自动生成的`CmmLexer`类的源码，可以发现其已经为我们构建好了一个静态的`Vocabulary`对象。
 
@@ -207,7 +207,7 @@ public class Main
 
 ⚠️ 无论什么方式，在读取完所有词法单元的时候，读取文件的“指针”已经指向了文件内容的最后，想要再度从Lexer中从头读取，请使用Lexer中已经定义好的复位函数（或者新建一个Lexer对象）。
 
-⚠️ 由于Antlr默认的词法错误识别规则，若不满足的字符序列在行末，从错误Token中读取到的text中会带上该行的换行符号 ，所以可以使用`text.trim()`来进行调整。如果没有`trim()`函数，或许会有以下现象(以下测试的词法中并没有定义ID规则但定义了FLOAT规则）：
+⚠️ 由于Antlr默认的词法错误识别规则，若不满足的字符序列在行末，从错误Token中读取到的text中会带上该行的换行符号 ，所以可以使用`text.trim()`来进行调整。如果没有`trim()`函数，或许会有以下现象(以下测试的词法中并没有定义ID规则但定义了`TYPE: "float" `规则）：
 
 ```
 &
