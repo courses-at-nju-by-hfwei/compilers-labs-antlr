@@ -60,7 +60,9 @@ public class Main
 
 ​ 所以我们需要做的就是让lexer对象从头到尾读取input，并且分析出每个词法单元，如果有错误就打印错误，否则打印所有的词法单元。
 
-### 实现方式1
+### 错误信息打印
+
+#### 实现方式1
 
 ​  我们通过观察源码，可以看到在`org.antlr.v4.runtime.Lexer`类中有这样的方法，antlr自动生成的`CmmLexer`继承自该类
 
@@ -151,7 +153,7 @@ String text = _input.getText(Interval.of(_tokenStartCharIndex, _input.index()));
 
 ​  至此，我们就实现了词法单元Token的识别与错误词法单元报错。
 
-### 实现方式2
+#### 实现方式2
 
 &#x20; ​除了从CmmLexer中获取tokenList，也可以将CmmLexer传入词法单元流中例如`CommonTokenStream` 当中
 
@@ -178,8 +180,6 @@ public class Main
 
 
 
-
-
 ⚠️ 无论什么方式，在读取完所有词法单元的时候，读取文件的“指针”已经指向了文件内容的最后，想要再度从Lexer中从头读取，请使用Lexer中已经定义好的复位函数（或者新建一个Lexer对象）。
 
 ⚠️ 由于Antlr默认的词法错误识别规则，若不满足的字符序列在行末，从错误Token中读取到的text中会带上该行的换行符号 ，所以可以使用`text.trim()`来进行调整。如果没有`trim()`函数，或许会有以下现象(以下词法中没有定义id）：
@@ -196,7 +196,19 @@ Error type A at Line 3: undefined symbols fla .
 
 
 
+### 词法单元打印
+
+如果没有检测出词法错误，你需要按序打印每一个`Token`的详细信息。观察antlr自动生成的`CmmLexer`类的源码，可以发现其已经为我们构建好了一个静态的`Vocabulary`对象。因此可以使用以下方式获得`Token`的符号名称。
+
+```
+CmmLexer.VOCABULARY.getSymbolicName(token.getType());
+```
+
+
+
 你可以在提交的实验报告中，提出你所采用的，与上述实现方式不同的本次实验的其他实现方法。
+
+若发现本文档有误或者考虑不周全，你可以与助教联系。
 
 ## 实验说明
 
