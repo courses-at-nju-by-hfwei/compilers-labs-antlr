@@ -73,35 +73,35 @@ public List<? extends Token> getAllTokens() {...}
 ​ 在`nextToken()`方法中，需要注意到的是以下代码
 
 ```java
-	public Token nextToken() {
-		if (_input == null) {
-			throw new IllegalStateException("nextToken requires a non-null input stream.");
-		}
-		...
-		try{
-			...
-			while (true) {
+public Token nextToken() {
+    if (_input == null) {
+        throw new IllegalStateException("nextToken requires a non-null input stream.");
+    }
+    ...
+    try{
         ...
-				do {
-          ...
-					int ttype;
-					try {
-						ttype = getInterpreter().match(_input, _mode);
-					}
-					catch (LexerNoViableAltException e) {
-						notifyListeners(e);		// report error
-						recover(e);
-						ttype = SKIP;
-					}
-					...
-				} while ( _type ==MORE );
+        while (true) {
+            ...
+            do {
+                ...
+                int ttype;
+                try {
+                    ttype = getInterpreter().match(_input, _mode);
+                }
+                catch (LexerNoViableAltException e) {
+                    notifyListeners(e);		// report error
+                    recover(e);
+                    ttype = SKIP;
+                }
+                ...
+            } while ( _type ==MORE );
+            ...
+        }
+    }
+    finally {
         ...
-			}
-		}
-		finally {
-      ...
-		}
-	}
+    }
+}
 ```
 
 ​ 代码大致意思如下：如果当前识别出的`_input`(CharStream类型)并不能满足lexer中定义的任何词法单元时，将会报错，然后返回没有正确分类的Token，否则返回相应Token。
