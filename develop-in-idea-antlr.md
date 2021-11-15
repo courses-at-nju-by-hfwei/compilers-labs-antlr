@@ -6,9 +6,79 @@
 
 ## Directly Import
 
-Deciding whether TO DO
+#### 一、idea项目配置
 
-直接open folder 然后导入antlr jar包 然后修改.gitignore
+1 . 用idea直接open打开项目的`Lab`文件夹 (如果你是在Windows平台下使用Ubuntu虚拟机，你可以将Lab文件夹放到与宿主机共享的文件夹中)，在`src`下创建.g4文件，然后进行少量的编码。
+
+![](.gitbook/assets/Snipaste\_2021-11-15\_20-12-44.png)
+
+2\. 配置.g4文件的output路径。根据实验的要求，我们直接配置到`src`路径下
+
+![](<.gitbook/assets/Snipaste\_2021-11-15\_20-13-43 (3).png>)
+
+![](<.gitbook/assets/Snipaste\_2021-11-15\_20-16-18 (1).png>)
+
+3\. 然后开始生成，CmmLexer.java文件就出现在src路径下。
+
+![](<.gitbook/assets/Snipaste\_2021-11-15\_20-16-50 (1).png>)
+
+![](.gitbook/assets/Snipaste\_2021-11-15\_20-17-44.png)
+
+4\. 接下来的工作是 [antlr4-4.9.2-complete.jar](https://repo1.maven.org/maven2/org/antlr/antlr4/4.9.2/)  导入到idea中，这样idea就不会爆红了
+
+![](.gitbook/assets/Snipaste\_2021-11-15\_20-18-18.png)
+
+![](<.gitbook/assets/Snipaste\_2021-11-15\_20-20-15 (1).png>)
+
+![](<.gitbook/assets/Snipaste\_2021-11-15\_20-22-26 (1).png>)
+
+![](<.gitbook/assets/Snipaste\_2021-11-15\_20-23-09 (1).png>)
+
+#### 二、.gitignore 的书写
+
+1 . 执行main后，我们注意到idea额外生成了一个out文件夹，里面有二进制.class文件以及.g4文件，但它还没被添加到.gitignore中......
+
+![](<.gitbook/assets/Snipaste\_2021-11-15\_20-25-47 (1).png>)
+
+![](.gitbook/assets/Snipaste\_2021-11-15\_20-27-33.png)
+
+2\. 如果你还不熟悉.gitignore的写法，可以用idea所提供的功能将多余的文件添加入.gitignore中
+
+![](<.gitbook/assets/Snipaste\_2021-11-15\_20-29-52 (1).png>)
+
+![](.gitbook/assets/Snipaste\_2021-11-15\_20-30-13.png)
+
+* 最终的.gitignore文件至少应该如上图所示，接下来就可以放心地使用`git add .` 等命令了
+
+3\. 如果你还不放心，想验证自己的git配置是否成功。你可以到OJ平台上把submit.zip下载到本地的一个空文件夹内，然后执行`git reset HEAD --hard`  命令。正常情况下，你的提交不应该有过多额外的文件。
+
+![](<.gitbook/assets/Snipaste\_2021-11-15\_20-58-43 (1).png>)
+
+#### 三、Antlr4源码下载与阅读
+
+1 . 源码通过[GitHub地址](https://github.com/antlr/antlr4/tree/4.9.2)获取，相应的Tag不要选错，然后直接下载其zip包到本地
+
+![](<.gitbook/assets/image (1).png>)
+
+2\. 回到idea，注意到当前我们所看到的antlr4代码都是反编译后的结果，因此局部变量名和注释是缺失的
+
+![](<.gitbook/assets/Snipaste\_2021-11-15\_21-14-27 (1).png>)
+
+3\. 选择"Choose Source"后，选择刚刚下载好的zip包，一路ok就行
+
+![](<.gitbook/assets/Snipaste\_2021-11-15\_21-15-23 (1).png>)
+
+![](.gitbook/assets/Snipaste\_2021-11-15\_21-15-50.png)
+
+4\. 最终成功看到antlr4的注释等内容
+
+![](<.gitbook/assets/Snipaste\_2021-11-15\_21-16-10 (1).png>)
+
+
+
+⚠️ 此方法前期配置比较繁琐，请谨慎操作，**尤其是out文件夹**，请务必把它需要添加到**`.gitignore`**中
+
+⚠️ 如果后期的实验又有额外的二进制文件产生，请以同样的方法把他们添加到`.gitignore`中
 
 ## Maven
 
@@ -16,7 +86,7 @@ Deciding whether TO DO
 
 在IDEA里，File->New Project-> Maven-> Project SDK可以选择1.8+的版本->next，然后输入项目的路径和名称
 
-![](<.gitbook/assets/image (1).png>)
+![](<.gitbook/assets/image (1) (1).png>)
 
 在`pom.xml` 文件中添加如下内容，然后点击右上角的图标(Load Maven Changes)
 
