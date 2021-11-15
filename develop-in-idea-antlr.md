@@ -8,7 +8,7 @@
 
 #### 一、idea项目配置
 
-1 . 用idea直接open打开项目的`Lab`文件夹 (如果你是在Windows平台下使用Ubuntu虚拟机，你可以将Lab文件夹放到与宿主机共享的文件夹中)，在`src`下创建.g4文件，然后进行少量的编码。
+1 . 用idea直接open项目的`Lab`文件夹 (如果你是在Windows平台下使用Ubuntu虚拟机，你可以将Lab文件夹放到与宿主机共享的文件夹中)；在`src`下创建.g4文件，然后各进行少量的编码。
 
 ![](.gitbook/assets/Snipaste\_2021-11-15\_20-12-44.png)
 
@@ -24,7 +24,7 @@
 
 ![](.gitbook/assets/Snipaste\_2021-11-15\_20-17-44.png)
 
-4\. 接下来的工作是 [antlr4-4.9.2-complete.jar](https://repo1.maven.org/maven2/org/antlr/antlr4/4.9.2/)  导入到idea中，这样idea就不会爆红了
+4\. 接下来的工作是将 [antlr4-4.9.2-complete.jar](https://repo1.maven.org/maven2/org/antlr/antlr4/4.9.2/)  导入到idea中，这样idea就不会爆红了
 
 ![](.gitbook/assets/Snipaste\_2021-11-15\_20-18-18.png)
 
@@ -76,9 +76,9 @@
 
 
 
-⚠️ 此方法前期配置比较繁琐，请谨慎操作，**尤其是out文件夹**，请务必把它需要添加到**`.gitignore`**中
+⚠️ 此方法前期配置比较繁琐，请谨慎操作，**尤其是out文件夹**，请务必把它添加到**`.gitignore`**中
 
-⚠️ 如果后期的实验又有额外的二进制文件产生，请以同样的方法把他们添加到`.gitignore`中
+⚠️ 如果后期的实验又有额外的二进制文件产生，请以同样的方法把它们添加到`.gitignore`中
 
 ## Maven
 
