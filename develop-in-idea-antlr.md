@@ -2,83 +2,53 @@
 
 本文档的目的在于在IDEA上帮助大家创建一个与本次实验Lab相适配的项目，以便在实验开发过程中使用IDEA提供的丰富的插件和辅助功能，更快捷的完成实验。
 
+以下提供了三种部署方式，推荐使用Maven/Gradle方式部署，这样可以在每个package下放置不同的Antlr项目，除了本次实验的项目，也可以创建课堂上的示例项目等等。
+
 ⚠️ 如果你已经有自己的coding流程，能够测试，能够提交，请忽略此文档。
+
+⚠️本文档默认你在MacOS或者Windows下使用IDEA，实验的Lab在Linux环境目录里。
 
 ## Directly Import
 
-#### 一、idea项目配置
+### 环境配置
 
-1 . 用idea直接open项目的`Lab`文件夹 (如果你是在Windows平台下使用Ubuntu虚拟机，你可以将Lab文件夹放到与宿主机共享的文件夹中)；在`src`下创建.g4文件，然后各进行少量的编码。
+用IDEA直接open实验的`Lab`文件夹 (如果你是使用Linux虚拟机获取的实验Lab，请将Lab文件夹放到与宿主机共享的文件夹中)
+
+在`src`下创建.g4文件，然后各进行少量的编码
 
 ![](.gitbook/assets/Snipaste\_2021-11-15\_20-12-44.png)
 
-2\. 配置.g4文件的output路径。根据实验的要求，我们直接配置到`src`路径下
-
-![](<.gitbook/assets/Snipaste\_2021-11-15\_20-13-43 (3).png>)
+配置.g4文件的output路径。根据实验的要求，我们直接配置到`src`路径下，右键`.g4` 文件，点击Configure ANTLR，修改Output directory到项目的src目录。并勾选`generate parse tree visitor` (方便之后的实验）
 
 ![](<.gitbook/assets/Snipaste\_2021-11-15\_20-16-18 (1).png>)
 
-3\. 然后开始生成，CmmLexer.java文件就出现在src路径下。
+之后右键.g4文件，点击Generate ANTLR Recognizer，Antlr自动生成的文件就会放在src目录下
 
-![](<.gitbook/assets/Snipaste\_2021-11-15\_20-16-50 (1).png>)
+⚠️如果目录下有多个.g4文件，请对每个.g4文件执行上述操作
 
-![](.gitbook/assets/Snipaste\_2021-11-15\_20-17-44.png)
-
-4\. 接下来的工作是将 [antlr4-4.9.2-complete.jar](https://repo1.maven.org/maven2/org/antlr/antlr4/4.9.2/)  导入到idea中，这样idea就不会爆红了
-
-![](.gitbook/assets/Snipaste\_2021-11-15\_20-18-18.png)
+接下来的工作是将 [antlr4-4.9.2-complete.jar](https://repo1.maven.org/maven2/org/antlr/antlr4/4.9.2/)导入到项目中，菜单栏-> File-> Project Structure，添加jar包
 
 ![](<.gitbook/assets/Snipaste\_2021-11-15\_20-20-15 (1).png>)
 
-![](<.gitbook/assets/Snipaste\_2021-11-15\_20-22-26 (1).png>)
+执行如上操作过后，可以注意到你的java代码里将不会有红色报错信息，通过`Main.java` 的入口函数`main` 执行整个项目后，我们注意到idea额外生成了一个out文件夹，请将其加入到`.gitignore` 文件中
 
-![](<.gitbook/assets/Snipaste\_2021-11-15\_20-23-09 (1).png>)
+添加的大致内容如下
 
-#### 二、.gitignore 的书写
+```
+/out/*
+Lab.iml
+.idea
+```
 
-1 . 执行main后，我们注意到idea额外生成了一个out文件夹，里面有二进制.class文件以及.g4文件，但它还没被添加到.gitignore中......
+如果后期的实验又有额外的二进制文件产生，请以同样的方法把它们添加到`.gitignore`中
 
-![](<.gitbook/assets/Snipaste\_2021-11-15\_20-25-47 (1).png>)
+### 项目目录
 
-![](.gitbook/assets/Snipaste\_2021-11-15\_20-27-33.png)
+由于是IDEA自动打开的本次实验项目，项目目录并不需要配置
 
-2\. 如果你还不熟悉.gitignore的写法，可以用idea所提供的功能将多余的文件添加入.gitignore中
+### 提交代码
 
-![](<.gitbook/assets/Snipaste\_2021-11-15\_20-29-52 (1).png>)
-
-![](.gitbook/assets/Snipaste\_2021-11-15\_20-30-13.png)
-
-* 最终的.gitignore文件至少应该如上图所示，接下来就可以放心地使用`git add .` 等命令了
-
-3\. 如果你还不放心，想验证自己的git配置是否成功。你可以到OJ平台上把submit.zip下载到本地的一个空文件夹内，然后执行`git reset HEAD --hard`  命令。正常情况下，你的提交不应该有过多额外的文件。
-
-![](<.gitbook/assets/Snipaste\_2021-11-15\_20-58-43 (1).png>)
-
-#### 三、Antlr4源码下载与阅读
-
-1 . 源码通过[GitHub地址](https://github.com/antlr/antlr4/tree/4.9.2)获取，相应的Tag不要选错，然后直接下载其zip包到本地
-
-![](<.gitbook/assets/image (1).png>)
-
-2\. 回到idea，注意到当前我们所看到的antlr4代码都是反编译后的结果，因此局部变量名和注释是缺失的
-
-![](<.gitbook/assets/Snipaste\_2021-11-15\_21-14-27 (1).png>)
-
-3\. 选择"Choose Source"后，选择刚刚下载好的zip包，一路ok就行
-
-![](<.gitbook/assets/Snipaste\_2021-11-15\_21-15-23 (1).png>)
-
-![](.gitbook/assets/Snipaste\_2021-11-15\_21-15-50.png)
-
-4\. 最终成功看到antlr4的注释等内容
-
-![](<.gitbook/assets/Snipaste\_2021-11-15\_21-16-10 (1).png>)
-
-
-
-⚠️ 此方法前期配置比较繁琐，请谨慎操作，**尤其是out文件夹**，请务必把它添加到**`.gitignore`**中
-
-⚠️ 如果后期的实验又有额外的二进制文件产生，请以同样的方法把它们添加到`.gitignore`中
+在你编写完每次实验需要的内容，IDEA调试正确后，请在项目要求的Linux环境下，在terminal中打开本Lab文件夹，然后进行`make` / `make submit` / `make run FILEATH=xxxx.cmm` 等操作
 
 ## Maven
 
@@ -146,17 +116,19 @@
 
 ![](<.gitbook/assets/image (2).png>)
 
-编写完`CmmLexer.g4`后，右键`CmmLexer.g4` ，选择Generate ANTLR Recognizer。即可在本package下看到自动生成的文件。
+编写完`CmmLexer.g4`后，右键`CmmLexer.g4` ，选择Generate ANTLR Recognizer。即可在本package下看到自动生成的文件
 
-之后就可以根据生成的Java类编写实验代码。
+之后就可以根据生成的Java类编写实验代码
+
+⚠️如果目录下有多个.g4文件，请对每个.g4文件执行上述操作。
 
 ### 提交代码
 
-将你每次实验的package下自定义的java代码，以及`Main.java` 还有`.g4` 文件复制到实验的Lab/src/下，并删除所有Java代码顶部的package声明。
+将你每次实验对应的package下自定义的java代码，以及`Main.java` 还有`.g4` 文件复制到实验的Lab/src/下，并删除所有Java代码顶部的package声明。
 
-然后在Lab目录下输入`make` /`make test`/`make run FILEPATH=xxx.cmm` 调试，如果没有问题，请选择`make submit` 提交
+然后在Lab目录下输入`make` /`make test`/`make run FILEPATH=xxx.cmm` 调试，如果没有问题，请选择`make submit` 提交。
 
 ## Gradle
 
-TODO
+与Maven近似，不过多叙述。
 
