@@ -2,11 +2,11 @@
 
 本文档的目的在于在IDEA上帮助大家创建一个与本次实验Lab相适配的项目，以便在实验开发过程中使用IDEA提供的丰富的插件和辅助功能，更快捷的完成实验。
 
-以下提供了三种部署方式，推荐使用Maven/Gradle方式部署，这样可以在每个package下放置不同的Antlr项目，除了本次实验的项目，也可以创建课堂上的示例项目等等。
+以下提供了三种部署方式，推荐使用Maven/Gradle方式部署，这样可以在每个package下放置不同的Antlr项目，除了本次Lab的每次实验作业`L1/L2/L3...` ，也可以创建课堂上的示例项目等等。
 
 ⚠️ 如果你已经有自己的coding流程，能够测试，能够提交，请忽略此文档。
 
-⚠️本文档默认你在MacOS或者Windows下使用IDEA，实验的Lab在Linux环境目录里。
+⚠️ 本文档默认你在MacOS或者Windows下使用IDEA，实验的Lab在Linux环境目录里。
 
 ## Directly Import
 
@@ -124,7 +124,7 @@ Lab.iml
 
 ### 提交代码
 
-将你每次实验对应的package下自定义的java代码，以及`Main.java` 还有`.g4` 文件复制到实验的Lab/src/下，并删除所有Java代码顶部的package声明。
+将你每次实验对应的package下自定义的java代码，以及`Main.java` 还有`.g4` 文件**复制**到实验的Lab/src/下，并删除所有Java代码顶部的package声明。
 
 然后在Lab目录下输入`make` /`make test`/`make run FILEPATH=xxx.cmm` 调试，如果没有问题，请选择`make submit` 提交。
 
