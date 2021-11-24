@@ -93,9 +93,7 @@ extDecList: varDec (COMMA varDec)*;
 
 使用listener会减少人为访问犯错的概率，但是灵活性不足，无法针对特定情况来自定义遍历的起点以及顺序
 
-listener机制一般会使用Antlr自带的`ParseTreeWalker` 在建立好语法树过后来访问他的所有的节点，在每次访问和离开节点的时候会分别触发对应规则子树的`enter`和`exit` 方法。
-
-这些方法在Antlr自动生成的`CmmParserBaseListener.java` 有默认实现，为了能在walker访问节点的的时候listener有特定的行为，你需要重新实现一个类继承该类，并且按需要重写其中方法，将自定义listener的对象传入`ParseTreeWalker` 的`walk` 方法中
+listener机制一般会使用Antlr自带的`ParseTreeWalker` 在建立好语法树过后来访问它的所有的节点，在每次访问和离开节点的时候会分别触发对应规则子树的`enter`和`exit` 方法。
 
 具体使用如下
 
@@ -114,7 +112,7 @@ public static void main(String[] args){
 }
 ```
 
-关注walk方法：
+`walk` 方法接受一个`ParseTreeListener` 类型的参数，你需要实现一个listener类，满足它或者它的父类实现了`ParseTreeListener` 接口，并且按需要重写其中的方法，然后将自定义listener的对象传入`ParseTreeWalker` 的`walk` 方法中，关注`walk` 方法：
 
 ```java
 // ParseTreeWalker.java
