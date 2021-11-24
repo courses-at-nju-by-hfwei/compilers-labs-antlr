@@ -6,21 +6,118 @@ description: TODO
 
 ## 实验介绍
 
+本次实验的内容需要在L1的基础上，对输入的c--代码进行语法分析，Antlr会在Parser中根据你定义的语法规则构建树，在构建树的过程中如果遇到错误则会进行错误识别，错误上报和错误恢复。
 
+实验要求你能够修改错误上报的信息并打印，并且在没有遇到错误的时候能够通过listener模式或者visitor模式遍历Antlr自动构建的语法树，并且按要求打印出树的信息。
 
 ## 实验步骤
 
 ### 编写语法规则文件
 
+#### 语法规则文件
+
+在创建完CmmParser.g4之后，为了表明其指具备语法规则，并且引入CmmLexer.g4中定义的各种词法单元，我们需要在文件顶部声明如下
+
+```
+parser grammar CmmParser
+
+options {
+  tokenVocab=CmmLexer;
+}
+```
+
+IDE中如果报错没有找到tokens file，请先进行`antlr4 CmmLexer.g4` 生成需要的词法文件
+
+之后请根据附录的语法书写语法规则
+
+语法规则的书写可参考[Antlr-Parser-Rules](l2-parser-reference.md#shi-yan-jie-shao) 以及_The Definitive ANTLR 4 Reference (2nd Edition) Chapter 15.3 _
+
+#### 语法规则
+
+与Bison不同的是，Antlr4会生成的语法分析器基于升级版的LL(\*)，也叫做ALL(\*)，解决了文法左递归的问题，并且支持了扩展的BNF语法。这也允许我们对附录给出的C--语言文法进行一定的升级，即取消各种`xxxList` 而选择使用`*` ，下面将给出几个例子:
+
+对于Program的规则，按照附录，在`CmmParser.g4` 文件中将会是如下内容
+
+```
+program: extDefList;
+extDefList: extDef extDefList
+    | 
+    ;
+extDef: specifier extDecList SEMI
+  | specifier SEMI
+  | specifier funDec compSt
+  ;
+```
+
+由于Antlr4支持扩展BNF，需要将其改造成这样：
+
+```
+program: extDef* EOF;
+extDef: specifier extDecList SEMI
+  | specifier SEMI
+  | specifier funDec compSt
+  ;
+```
+
+注意，在program规则后面需要添加EOF，使parser以program规则为起点的时候，尽可能的读取输入，直到EOF。
+
+对于ExtDecList的规则，按照附录，在`CmmParser.g4` 文件中将会是如下内容
+
+```
+extDecList: varDec
+  | varDec COMMA extDecList
+  ;
+```
+
+需要将其改造成这样
+
+```
+extDecList: varDec (COMMA varDec)*;
+```
+
+除了上方的例子，附录的文法中还有几处需要修改，请自行完成。
+
+
+
+⚠️ 语法规则的正确与否决定了你这次实验的绝大部分得分。
+
 ### 打印语法树
+
+在编写完CmmParser.g4之后，你已经定义出了C--语言，接下来关键就在于用语法分析器创建一颗语法树，然后使用特定程序代码遍历这颗语法树，在遍历树的过程中触发一定的事件。
+
+你可以手动编写代码来遍历这颗树，也可以使用Antlr提供的树遍历工具或者树访问工具来遍历这颗树。
+
+下面我们将介绍visitor和listener两种机制来获取树的信息
 
 #### Listener
 
-listener模式的优点是实现了树节点的遍历与访问分离，降低代码耦合度，减少粗心犯错的概率；缺点是灵活性不足，无法针对特定情况来自定义遍历的顺序。
+使用listener会减少人为访问犯错的概率，但是灵活性不足，无法针对特定情况来自定义遍历的起点以及顺序
 
-为了使用 listener 模式，我们主要会接触到 ParseTreeWalker 这个类。我们先关注它的walk方法：
+listener机制一般会使用Antlr自带的`ParseTreeWalker` 在建立好语法树过后来访问他的所有的节点，在每次访问和离开节点的时候会分别触发对应规则子树的`enter`和`exit` 方法。
+
+这些方法在Antlr自动生成的`CmmParserBaseListener.java` 有默认实现，为了能在walker访问节点的的时候listener有特定的行为，你需要重新实现一个类继承该类，并且按需要重写其中方法，将自定义listener的对象传入`ParseTreeWalker` 的`walk` 方法中
+
+具体使用如下
 
 ```java
+// Main.java
+public static void main(String[] args){
+    ...
+    ...
+    Parser parser = new CmmParser(tokens);
+    ParseTree tree = parser.program(); 
+    ParseTreeWalker walker = new ParseTreeWalker();
+    // 类名请更换为你自己实现的Listener
+    XXXListener listener = new XXXListener();
+    walker.walk(listener, tree);
+    ...
+}
+```
+
+关注walk方法：
+
+```java
+// ParseTreeWalker.java
 public void walk(ParseTreeListener listener, ParseTree t) {
     ......
     if ( t instanceof TerminalNode) {
@@ -37,19 +134,31 @@ public void walk(ParseTreeListener listener, ParseTree t) {
 }
 ```
 
-此方法实现了对语法树的深度优先遍历。大概意思是，如果当前为【终结符】（即叶子节点、词法单元），则直接访问该节点；如果当前为【语法规则】（非叶子节点、语法单元），则先访问一次此节点，然后对其children列表递归处理，最后再次访问此节点。
+此方法实现了对语法树的深度优先遍历，对叶节点(TerminalNode)进行访问，以及触发进入和退出非叶节点(RuleNode)的规则。
+
+进一步查看代码，你就能找到本次实验需要override的内容。
+
+
+
+方法2---要不要加呢...
 
 因此，我们的重点就是实现ParseTreeListener接口的 `visitTerminal`、`enterEveryRule`、`exitEveryRule` 方法，构造出新的listener对象并传入walk方法之中。
-
-```java
-parseTreeWalker.walk(new ParseTreeListener(){/* TODO, Override */}, rootNode);
-```
 
 对于 `visitTerminal` 方法，我们可通过 `TerminalNode` 对象的`getSymbol` 这一API来获取该终结符的 `Token`
 
 对于每一个`语法规则`节点，其名称可参见`CmmParser`类的`ruleNames`静态对象，其行号是指该语法单元所产生出的第一个词素的行号
 
+
+
 #### Visitor
+
+
+
+
+
+
+
+⚠️ 在打印树信息的时候，你将会接触到许多类和接口，例如`ParserRuleContext` `TerminalNode` `Token` `RuleNode` `RuleContext` 等等，请务必理清他们的继承、实现、依赖关系，以免混淆
 
 ### 错误的识别和恢复
 
@@ -153,7 +262,5 @@ Error type B at Line 2: array size must be an integer constant
 ⚠️ 使用勘误备选分支会让ANTLR程序认为该错误是正确的文法，构建一颗完整的语法树。如果整个代码只有这一种错误，请不要让你的程序打印树的结构，而是打印报错信息。
 
 ⚠️ 我们确保用例中的`[]` 内出现且仅出现一个 `ID`，`INT`，`FLOAT`三种类型之一的Token
-
-⚠️ 为避免歧义，测试样例保证`a[1][n][3][1.3]` 均处于同一行内
 
 ## 实验说明
