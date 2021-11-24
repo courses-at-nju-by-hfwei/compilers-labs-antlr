@@ -16,6 +16,39 @@ description: TODO
 
 #### Listener
 
+listener模式的优点是实现了树节点的遍历与访问分离，降低代码耦合度，减少粗心犯错的概率；缺点是灵活性不足，无法针对特定情况来自定义遍历的顺序。
+
+为了使用 listener 模式，我们主要会接触到 ParseTreeWalker 这个类。我们先关注它的walk方法：
+
+```java
+public void walk(ParseTreeListener listener, ParseTree t) {
+    ......
+    if ( t instanceof TerminalNode) {
+        listener.visitTerminal((TerminalNode)t);  // 访问词法单元
+        return;
+    }
+    RuleNode r = (RuleNode)t;
+    enterRule(listener, r);        //  类似于先序遍历
+    int n = r.getChildCount();
+    for (int i = 0; i<n; i++) {
+        walk(listener, r.getChild(i));
+    }
+    exitRule(listener, r);         //  类似于后序遍历
+}
+```
+
+此方法实现了对语法树的深度优先遍历。大概意思是，如果当前为【终结符】（即叶子节点、词法单元），则直接访问该节点；如果当前为【语法规则】（非叶子节点、语法单元），则先访问一次此节点，然后对其children列表递归处理，最后再次访问此节点。
+
+因此，我们的重点就是实现ParseTreeListener接口的 `visitTerminal`、`enterEveryRule`、`exitEveryRule` 方法，构造出新的listener对象并传入walk方法之中。
+
+```java
+parseTreeWalker.walk(new ParseTreeListener(){/* TODO, Override */}, rootNode);
+```
+
+对于 `visitTerminal` 方法，我们可通过 `TerminalNode` 对象的`getSymbol` 这一API来获取该终结符的 `Token`
+
+对于每一个`语法规则`节点，其名称可参见`CmmParser`类的`ruleNames`静态对象，其行号是指该语法单元所产生出的第一个词素的行号
+
 #### Visitor
 
 ### 错误的识别和恢复
@@ -119,6 +152,8 @@ Error type B at Line 2: array size must be an integer constant
 
 ⚠️ 使用勘误备选分支会让ANTLR程序认为该错误是正确的文法，构建一颗完整的语法树。如果整个代码只有这一种错误，请不要让你的程序打印树的结构，而是打印报错信息。
 
-⚠️ 我们确保用例中的`[]` 内只会出现ID，INT，FLOAT三种类型的Token
+⚠️ 我们确保用例中的`[]` 内出现且仅出现一个 `ID`，`INT`，`FLOAT`三种类型之一的Token
+
+⚠️ 为避免歧义，测试样例保证`a[1][n][3][1.3]` 均处于同一行内
 
 ## 实验说明
