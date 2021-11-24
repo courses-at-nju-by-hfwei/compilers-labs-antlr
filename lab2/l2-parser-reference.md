@@ -41,11 +41,11 @@ line 3:2 missing ';' at 'int'
 line 5:0 missing ';' at '}'
 ```
 
-Antlr的错误报告功能在发现错误过后打印出错误信息，并且借助于自带的错误恢复机制，继续识别出了接下来的错误。所以大家接下来需要做的就只是修改其默认的错误信息，变为本次实验需要的格式。
+ANTLR的错误报告功能在发现错误过后打印出错误信息，并且借助于自带的错误恢复机制，继续识别出了接下来的错误。所以大家接下来需要做的就只是修改其默认的错误信息，变为本次实验需要的格式。
 
 观察ANTLR构建语法树的全过程，可以看到在ANTLR自动生成的CmmParser中，ANTLR会为每个规则生成一个方法，用于构造该规则下的语法树，并且返回其构造的树的根节点，例如`public final ProgramContext program() throws RecognitionException` ，这些方法都通过了一个`try...catch...finally` 结构来实现内部逻辑。
 
-```
+```java
 public final ProgramContext program() throws RecognitionException {
 	...
 	try {
