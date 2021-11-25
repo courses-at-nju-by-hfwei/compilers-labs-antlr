@@ -16,7 +16,7 @@ description: Antlr语法分析实验指导
 
 #### 语法规则文件
 
-> 语法规则的书写可参考[Antlr-Parser-Rules](l2-parser-reference.md#shi-yan-jie-shao) 以及_The Definitive ANTLR 4 Reference (2nd Edition) Chapter 15.3 _
+> 语法规则的书写可参考[Antlr-Parser-Rules](https://github.com/antlr/antlr4/blob/master/doc/parser-rules.md) 以及_The Definitive ANTLR 4 Reference (2nd Edition) Chapter 15.3 _
 
 在创建完CmmParser.g4之后，为了表明其只具备语法规则，并且引入CmmLexer.g4中定义的各种词法单元，需要在文件顶部声明如下
 
@@ -63,7 +63,7 @@ extDef: specifier extDecList SEMI
 
 注意，这里去掉了`extDefList` 并直接将`extDef*` 作为`program` 规则而不是修改`extDefList` 的规则，并且在program规则后面添加了EOF
 
-这是为了parser以program规则为起点的时候，尽可能的读取输入，直到EOF，其余地方请直接修改`xxxList` 的规则即可
+这是为了parser以`program` 规则为起点的时候，尽可能的读取输入，直到EOF，其余地方请直接修改`xxxList` 的规则即可
 
 对于ExtDecList的规则，按照附录，在`CmmParser.g4` 文件中将会是如下内容
 
@@ -136,7 +136,7 @@ public void walk(ParseTreeListener listener, ParseTree t) {
 }
 ```
 
-此方法实现了对语法树的深度优先遍历，对叶节点(TerminalNode)进行访问，以及触发进入和退出非叶节点(RuleNode)的规则。
+此方法实现了对语法树的深度优先遍历，对叶节点`TerminalNode` 进行访问，以及触发进入和退出非叶节点`RuleNode`的规则。
 
 进一步查看代码，你就能找到本次实验需要override的内容。
 
@@ -169,7 +169,7 @@ public T visit(ParseTree tree) {
 
 这里传入的树可以是`TerminalNode` 的实现`TerminalNodeImpl` (Antlr定义的，是所有叶节点的实现），也可以是`RuleNode` 的实现。
 
-调用`accept`方法，在`accept` 方法中控制`visitor` 的行为，**默认情况下**，对于非叶节点，就会调用visitor的`visitChildren()` 对于叶节点，就会调用visitor的`visitTerminal()` 。
+调用`accept`方法，在`accept` 方法中控制`visitor` 的行为，**默认情况下**，对于非叶节点，就会调用visitor的`visitChildren()` 对于叶节点，就会调用`visitor`的`visitTerminal()` 。
 
 总之，visitor的让树的遍历过程可以完全依赖于用户，你可以定义出不同的遍历方法，使用大体如下
 
