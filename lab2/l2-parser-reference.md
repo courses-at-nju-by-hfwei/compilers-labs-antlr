@@ -36,7 +36,7 @@ IDE中如果报错没有找到tokens file，请先进行`antlr4 CmmLexer.g4` 生
 
 ⚠️ 语法规则的正确与否决定了你这次实验的绝大部分得分。
 
-与Bison不同的是，Antlr4会生成的语法分析器基于升级版的LL(\*)，也叫做ALL(\*)，解决了文法左递归的问题，并且支持了扩展的BNF语法。这也允许对附录给出的C--语言文法进行一定的升级，即取消各种`xxxList` 而选择使用`*` ，下面将给出几个例子:
+与Bison不同的是，Antlr4会生成的语法分析器基于升级版的LL(\*)，也叫做ALL(\*)，解决了文法左递归的问题，并且支持了扩展的BNF语法。这也允许对附录给出的C--语言文法进行一定的升级，即各种`xxxList` 的规则不选择递归，而选择使用`*` ，下面将给出两个例子:
 
 对于Program的规则，按照附录，在`CmmParser.g4` 文件中将会是如下内容
 
@@ -61,7 +61,9 @@ extDef: specifier extDecList SEMI
   ;
 ```
 
-注意，在program规则后面需要添加EOF，使parser以program规则为起点的时候，尽可能的读取输入，直到EOF。
+注意，这里去掉了`extDefList` 并直接将`extDef*` 作为`program` 规则而不是修改`extDefList` 的规则，并且在program规则后面添加了EOF
+
+这是为了parser以program规则为起点的时候，尽可能的读取输入，直到EOF，其余地方请直接修改`xxxList` 的规则即可
 
 对于ExtDecList的规则，按照附录，在`CmmParser.g4` 文件中将会是如下内容
 
@@ -167,7 +169,7 @@ public T visit(ParseTree tree) {
 
 这里传入的树可以是`TerminalNode` 的实现`TerminalNodeImpl` (Antlr定义的，是所有叶节点的实现），也可以是`RuleNode` 的实现。
 
-调用`accept`方法，在`accept` 方法中控制`visitor` 的行为，**默认情况下**，对于非叶节点，就会调用visitor的`visitChildren()` 对于叶节点，就会调用listener的`visitTerminal()` 。
+调用`accept`方法，在`accept` 方法中控制`visitor` 的行为，**默认情况下**，对于非叶节点，就会调用visitor的`visitChildren()` 对于叶节点，就会调用visitor的`visitTerminal()` 。
 
 总之，visitor的让树的遍历过程可以完全依赖于用户，你可以定义出不同的遍历方法，使用大体如下
 
@@ -281,10 +283,10 @@ line 2:11 no viable alternative at input 'a[1][n'
 line 3:2 missing '}' at 'int'
 ```
 
-这样的报错信息无疑是不清楚并且冗余的，我们需要你的程序能够只报一个错误，并且打印自定义的，更加细节的报错信息，例如
+这样的报错信息无疑是不清楚并且冗余的，我们需要你的程序对于该输入能够只报一个错误，并且打印自定义的，更加细节的报错信息，例如
 
 ```
-Error type B at Line 2: array size must be an integer constant
+Error type B at Line 2: array size must be an integer constant, not n
 ```
 
 当然，你也可以再细节化你的报错信息。
@@ -295,7 +297,9 @@ Error type B at Line 2: array size must be an integer constant
 
 ## 实验说明
 
-本实验文档意在为大家在本次实验中提供充分的发挥空间，所以并没有具体的说明实现方式，看起来不会如L1那么易懂，请大家充分实践课堂以及书本上的例子，阅读源码，研究继承实现依赖关系。鼓励大家在实验报告中记录你的实现方法以及钻研过程。
+本实验文档意在为大家在本次实验中提供充分的发挥空间，所以并没有具体地说明实现方式，看起来不会如L1那么易懂，请大家充分实践课堂以及书本上的例子，阅读源码，研究继承实现依赖关系。
+
+鼓励大家在实验报告中记录你的实现方法以及钻研过程。
 
 若发现本文档有误或者考虑不周全，你可以与助教联系。
 
