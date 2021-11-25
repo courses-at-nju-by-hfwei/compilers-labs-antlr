@@ -16,7 +16,9 @@ description: TODO
 
 #### 语法规则文件
 
-在创建完CmmParser.g4之后，为了表明其指具备语法规则，并且引入CmmLexer.g4中定义的各种词法单元，我们需要在文件顶部声明如下
+> 语法规则的书写可参考[Antlr-Parser-Rules](l2-parser-reference.md#shi-yan-jie-shao) 以及_The Definitive ANTLR 4 Reference (2nd Edition) Chapter 15.3 _
+
+在创建完CmmParser.g4之后，为了表明其只具备语法规则，并且引入CmmLexer.g4中定义的各种词法单元，需要在文件顶部声明如下
 
 ```
 parser grammar CmmParser
@@ -28,13 +30,13 @@ options {
 
 IDE中如果报错没有找到tokens file，请先进行`antlr4 CmmLexer.g4` 生成需要的词法文件
 
-之后请根据附录的语法书写语法规则
-
-语法规则的书写可参考[Antlr-Parser-Rules](l2-parser-reference.md#shi-yan-jie-shao) 以及_The Definitive ANTLR 4 Reference (2nd Edition) Chapter 15.3 _
+之后请根据附录的语法书写语法规则。
 
 #### 语法规则
 
-与Bison不同的是，Antlr4会生成的语法分析器基于升级版的LL(\*)，也叫做ALL(\*)，解决了文法左递归的问题，并且支持了扩展的BNF语法。这也允许我们对附录给出的C--语言文法进行一定的升级，即取消各种`xxxList` 而选择使用`*` ，下面将给出几个例子:
+⚠️ 语法规则的正确与否决定了你这次实验的绝大部分得分。
+
+与Bison不同的是，Antlr4会生成的语法分析器基于升级版的LL(\*)，也叫做ALL(\*)，解决了文法左递归的问题，并且支持了扩展的BNF语法。这也允许对附录给出的C--语言文法进行一定的升级，即取消各种`xxxList` 而选择使用`*` ，下面将给出几个例子:
 
 对于Program的规则，按照附录，在`CmmParser.g4` 文件中将会是如下内容
 
@@ -77,21 +79,21 @@ extDecList: varDec (COMMA varDec)*;
 
 除了上方的例子，附录的文法中还有几处需要修改，请自行完成。
 
-
-
-⚠️ 语法规则的正确与否决定了你这次实验的绝大部分得分。
-
 ### 打印语法树
 
 在编写完CmmParser.g4之后，你已经定义出了C--语言，接下来关键就在于用语法分析器创建一颗语法树，然后使用特定程序代码遍历这颗语法树，在遍历树的过程中触发一定的事件。
 
 你可以手动编写代码来遍历这颗树，也可以使用Antlr提供的树遍历工具或者树访问工具来遍历这颗树。
 
-下面我们将介绍visitor和listener两种机制来获取树的信息
+下面我们将介绍visitor和listener两种机制来获取树的信息。
+
+⚠️ 在打印树信息的时候，你将会接触到许多类和接口，例如`ParserRuleContext` `TerminalNode` `Token` `RuleNode` `RuleContext` `ParseTree` 等等，请务必理清他们的继承、实现、依赖关系，以免混淆
 
 #### Listener
 
-使用listener会减少人为访问犯错的概率，但是灵活性不足，无法针对特定情况来自定义遍历的起点以及顺序
+> 具体例子请参考_The Definitive ANTLR 4 Reference (2nd Edition) Chapter4.3, 7.2_
+
+使用listener会减少人为访问犯错的概率，但是灵活性不足，无法针对特定情况来自定义遍历的起点以及顺序。
 
 listener机制一般会使用Antlr自带的`ParseTreeWalker` 在建立好语法树过后来访问它的所有的节点，在每次访问和离开节点的时候会分别触发对应规则子树的`enter`和`exit` 方法。
 
@@ -136,35 +138,65 @@ public void walk(ParseTreeListener listener, ParseTree t) {
 
 进一步查看代码，你就能找到本次实验需要override的内容。
 
-
-
-方法2---要不要加呢...
-
-因此，我们的重点就是实现ParseTreeListener接口的 `visitTerminal`、`enterEveryRule`、`exitEveryRule` 方法，构造出新的listener对象并传入walk方法之中。
-
-对于 `visitTerminal` 方法，我们可通过 `TerminalNode` 对象的`getSymbol` 这一API来获取该终结符的 `Token`
-
-对于每一个`语法规则`节点，其名称可参见`CmmParser`类的`ruleNames`静态对象，其行号是指该语法单元所产生出的第一个词素的行号
-
-
-
 #### Visitor
 
+> 具体例子请参考_The Definitive ANTLR 4 Reference (2nd Edition) Chapter4.2, 7.3_
+
+visitor模式下，你并不需要使用一个额外的walker来遍历整棵树，而是使用一个实现了`ParseTreeVisitor` 接口的类来完成所有访问的操作，这意味着对所有节点的访问必须要显式调用，一旦忘记对某个节点进行访问，就会导致整棵树的遍历失败。但visitor提供了listener所不具备的灵活性，你可以自定义节点访问的顺序以及节点访问与否，就需要更加关注访问的细节。
+
+当在命令行中使用- visitor参数的时候，Antlr就会生成额外的`CmmParserVisitor` 接口以及`CmmParserBaseVisitor` 类
+
+前者继承了`ParseTreeVisitor` 接口，并新加了对C--语言规则的访问方法，后者实现了前者，并给C--语言规则的访问方法赋予了默认实现，并且继承了抽象类`AbstractParseTreeVisitor` ，这个类中有对`ParseTreeVisitor` 接口的默认实现
+
+访问器的起点一般都是通过`T visit(ParseTree tree)` 方法开始的，也就是传入一棵实现了`ParseTree` 接口的树对象，然后开始对整颗树进行访问，他的默认实现在`AbstractParseTreeVisitor` 中
+
+```java
+// AbstractParseTreeVisitor.java
+/**
+ * {@inheritDoc}
+ *
+ * <p>The default implementation calls {@link ParseTree#accept} on the
+ * specified tree.</p>
+ */
+@Override
+public T visit(ParseTree tree) {
+	return tree.accept(this);
+}
+
+```
+
+这里传入的树可以是`TerminalNode` 的实现`TerminalNodeImpl` (Antlr定义的，是所有叶节点的实现），也可以是`RuleNode` 的实现。
+
+调用`accept`方法，在`accept` 方法中控制`visitor` 的行为，**默认情况下**，对于非叶节点，就会调用visitor的`visitChildren()` 对于叶节点，就会调用listener的`visitTerminal()` 。
+
+总之，visitor的让树的遍历过程可以完全依赖于用户，你可以定义出不同的遍历方法，使用大体如下
+
+```java
+// Main.java
+    public static void main(String[] args) throws Exception {
+        ...
+        ...
+        ParseTree tree = parser.program();
+        XXXVisitor visitor = new XXXVisitor(); // 替换成你自己实现的visitor类
+        visitor.visit(tree);
+        ...
+        ...
+    }
 
 
+```
 
-
-
-
-⚠️ 在打印树信息的时候，你将会接触到许多类和接口，例如`ParserRuleContext` `TerminalNode` `Token` `RuleNode` `RuleContext` 等等，请务必理清他们的继承、实现、依赖关系，以免混淆
+清楚调用过程后，你应该就能知道本次实验需要override的内容。
 
 ### 错误的识别和恢复
 
-一旦拥有了正确的语法，我们就必须处理不合语法的语句。我们并不希望一个语法分析器对于非法输入的响应仅仅停留在遇到一个语法错误就会退出，而是能尽可能的识别错误，恢复错误，然后继续检查之后的错误。
+一旦拥有了正确的语法，就必须处理不合语法的语句。人们不希望一个语法分析器对于非法输入的响应仅仅停留在遇到一个语法错误就会退出，而是能尽可能的识别错误，恢复错误，然后继续检查之后的错误。
 
 #### 错误的打印
 
-在本次实验中，大家并不需要关心如何编写识别错误的代码，如何定位错误以及如何恢复错误。ANTLR强大的错误报告功能和复杂的错误恢复机制已经帮你完成了百分之九十的工作，你可以尝试着往你的程序中输入一下错误代码：
+> 具体请参考_The Definitive ANTLR 4 Reference (2nd Edition) Chapter 9.2_
+
+在本次实验中，大家并不需要关心如何编写识别错误的代码，如何定位错误以及如何恢复错误。Antlr强大的错误报告功能和复杂的错误恢复机制已经帮你完成了百分之九十的工作，你可以尝试着往你的程序中输入一下错误代码：
 
 ```c
 int main(){
@@ -181,9 +213,9 @@ line 3:2 missing ';' at 'int'
 line 5:0 missing ';' at '}'
 ```
 
-ANTLR的错误报告功能在发现错误过后打印出错误信息，并且借助于自带的错误恢复机制，继续识别出了接下来的错误。所以大家接下来需要做的就只是修改其默认的错误信息，变为本次实验需要的格式。
+Antlr的错误报告功能在发现错误过后打印出错误信息，并且借助于自带的错误恢复机制，继续识别出了接下来的错误。所以大家接下来需要做的就只是修改其默认的错误信息，变为本次实验需要的格式。
 
-观察ANTLR构建语法树的全过程，可以看到在ANTLR自动生成的CmmParser中，ANTLR会为每个规则生成一个方法，用于构造该规则下的语法树，并且返回其构造的树的根节点，例如`public final ProgramContext program() throws RecognitionException` ，这些方法都通过了一个`try...catch...finally` 结构来实现内部逻辑。
+观察Antlr构建语法树的全过程，可以看到在Antlr自动生成的CmmParser中，Antlr会为每个规则生成一个方法，用于构造该规则下的语法树，并且返回其构造的树的根节点，例如`public final ProgramContext program() throws RecognitionException` ，这些方法都通过了一个`try...catch...finally` 结构来实现内部逻辑。
 
 ```java
 public final ProgramContext program() throws RecognitionException {
@@ -226,9 +258,11 @@ recognizer.notifyErrorListeners(...);
 
 #### 勘误备选分支
 
-在编写语法分析器的时候，我们会对一些非常常见的语法错误进行特殊处理，这是非常值得的，通过接受这些常见的错误的方式，通过手动报错，减少了ANTLR自动报错以及自动恢复的开销，并且能够得到更精确的报错信息。
+> 具体请参考_The Definitive ANTLR 4 Reference (2nd Edition) Chapter 9.4_
 
-本次实验中，我们需要大家再实现**一个错误备选分支**，即发生该类错误的时候不会去触发ANTLR的report-recover机制，而是进入我们自定义的错误备选分支，默认该错误是语法允许的，然后再手动报告该错误信息。
+在编写语法分析器的时候，我们会对一些非常常见的语法错误进行特殊处理，这是非常值得的，通过接受这些常见的错误的方式，通过手动报错，减少了Antlr自动报错以及自动恢复的开销，并且能够得到更精确的报错信息。
+
+本次实验中，我们需要大家再实现**一个错误备选分支**，即发生该类错误的时候不会去触发Antlr的report-recover机制，而是进入自定义的错误备选分支，默认该错误是语法允许的，然后再手动报告该错误信息。
 
 例如对于如下代码：
 
@@ -240,7 +274,7 @@ int main(){
 }
 ```
 
-将其输入你的程序，语法正确的情况下，ANTLR默认会报如下错误：
+将其输入你的程序，语法正确的情况下，Antlr默认会报如下错误：
 
 ```
 line 2:11 no viable alternative at input 'a[1][n'
@@ -255,10 +289,15 @@ Error type B at Line 2: array size must be an integer constant
 
 当然，你也可以再细节化你的报错信息。
 
-具体的实现请参考_The Definitive ANTLR 4 Reference (2nd Edition) Chapter 9.4 Error Alternatives_
+⚠️ 使用勘误备选分支会让Antlr程序认为该错误是正确的文法，构建一颗完整的语法树。如果整个代码只有这一种错误，请不要让你的程序打印树的结构，而是打印报错信息。
 
-⚠️ 使用勘误备选分支会让ANTLR程序认为该错误是正确的文法，构建一颗完整的语法树。如果整个代码只有这一种错误，请不要让你的程序打印树的结构，而是打印报错信息。
-
-⚠️ 我们确保用例中的`[]` 内出现且仅出现一个 `ID`，`INT`，`FLOAT`三种类型之一的Token
+⚠️ 我们确保用例中的`[]` 内出现且仅出现一个 `ID`，`INT`，`FLOAT`三种类型之一的Token。
 
 ## 实验说明
+
+本实验文档意在为大家在本次实验中提供充分的发挥空间，所以并没有具体的说明实现方式，看起来不会如L1那么易懂，请大家充分实践课堂以及书本上的例子，阅读源码，研究继承实现依赖关系。鼓励大家在实验报告中记录你的实现方法以及钻研过程。
+
+若发现本文档有误或者考虑不周全，你可以与助教联系。
+
+
+
