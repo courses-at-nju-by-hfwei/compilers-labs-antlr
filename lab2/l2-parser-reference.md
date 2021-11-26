@@ -36,7 +36,7 @@ IDE中如果报错没有找到tokens file，请先进行`antlr4 CmmLexer.g4` 生
 
 ⚠️ 语法规则的正确与否决定了你这次实验的绝大部分得分。
 
-与Bison不同的是，Antlr4会生成的语法分析器基于升级版的LL(\*)，也叫做ALL(\*)，解决了文法左递归的问题，并且支持了扩展的BNF语法。这也允许对附录给出的C--语言文法进行一定的升级，即各种`xxxList` 的规则不选择递归，而选择使用`*` ，下面将给出两个例子:
+与Bison不同的是，Antlr4会生成的语法分析器基于升级版的LL(\*)，也叫做ALL(\*)，解决了文法左递归的问题，并且支持了扩展的BNF语法。这也允许对附录给出的C--语言文法进行一定的升级，即一些直接左递归或者直接右递归的规则可以不选择递归，而选择使用`*` ，下面将给出两个例子:
 
 对于Program的规则，按照附录，在`CmmParser.g4` 文件中将会是如下内容
 
@@ -61,9 +61,9 @@ extDef: specifier extDecList SEMI
   ;
 ```
 
-注意，这里去掉了`extDefList` 并直接将`extDef*` 作为`program` 规则而不是修改`extDefList` 的规则，并且在program规则后面添加了EOF
+注意，这里去掉了`extDefList` 规则并直接将`extDef*` 作为`program` 规则而不是修改`extDefList` 的规则，并且在program规则后面添加了EOF
 
-这是为了parser以`program` 规则为起点的时候，尽可能的读取输入，直到EOF，其余地方请直接修改`xxxList` 的规则即可
+这是为了parser以`program` 规则为起点的时候，尽可能的读取输入，直到EOF，其余地方请直接修改规则即可
 
 对于ExtDecList的规则，按照附录，在`CmmParser.g4` 文件中将会是如下内容
 
