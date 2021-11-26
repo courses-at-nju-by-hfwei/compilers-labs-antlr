@@ -270,7 +270,7 @@ recognizer.notifyErrorListeners(...);
 
 ```java
 int main(){
-  int a[1][n][3][1.3] = 3; // 声明数组的下标只能使用INT类型的常量
+  int a[1][n][3][1.3]; // 声明数组的下标只能使用INT类型的常量
   int i = 0;
   int j = 1;
 }
