@@ -106,7 +106,7 @@ listener机制一般会使用Antlr自带的`ParseTreeWalker` 在建立好语法�
 public static void main(String[] args){
     ...
     ...
-    Parser parser = new CmmParser(tokens);
+    CmmParser parser = new CmmParser(tokens);
     ParseTree tree = parser.program(); 
     ParseTreeWalker walker = new ParseTreeWalker();
     // 类名请更换为你自己实现的Listener
