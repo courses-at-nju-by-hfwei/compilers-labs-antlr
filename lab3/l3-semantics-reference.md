@@ -6,19 +6,17 @@ description: TODO
 
 ## 实验介绍
 
-在完成了L1词法分析以及L2语法分析后，我们将会从上下文无关分析阶段进入到上下文相关分析阶段。顾名思义，在之前的阶段中，我们并没有处理与输入代码的上下文相关的内容，例如在函数体中给一个没有声明的变量赋值，将一个INT类型的变量赋值为结构体，传入函数的参数与函数定义时的参数不同...等等。这些与上下文相关的内容就会在本次实验中进行处理。
+在完成了L1词法分析以及L2语法分析后，我们将会从上下文无关分析阶段进入到上下文相关分析阶段。顾名思义，在之前的阶段中，我们并没有处理与输入代码的上下文相关的内容，例如在函数体中给一个没有声明的变量赋值，将一个INT类型的变量赋值为结构体，调用函数时传入的参数与函数定义的参数不相同等等。
 
-本次实验要求你识别代码中的语义错误并打印，如果没有错误就不用输出任何内容。
-
-## 实验指导
-
-
+本次实验的关键就在于如何处理代码中上下文相关的内容，并且检查各种行为都是安全合法的，即语义正确的。如果检测到了代码中的语义错误，就需要将其打印出来，没有错误就不用输出任何内容。
 
 ## 实验步骤
 
 ### 设计类型
 
 > 类型：一组值，以及在这组值上的一系列操作。当我们在类型上面尝试去执行其不支持的操作时，类型错误就会产生。
+
+为了满足类型检查的需要，我们就需要将Cmm语言中定义的类型用特定的数据结构实现出来
 
 给定一个符号`a` ，在Cmm语言中，它可以是`INT` 和`FLOAT` 这样的基本类型，也可以对应由基本类型构造出来的`STRUCTURE` 以及`ARRAY` ，当我们在`a` 的后面添加括号时，它又可以被理解成一个`FUNCTION` 。
 
@@ -69,7 +67,7 @@ public class FieldList {
 
 有了以上示范，`ARRAY` 类以及基本类型类则很好实现了
 
-以上代码仅供参考，实际编写代码时请将不同类放到不同java文件中，并灵活根据需要修改其内容
+以上代码仅供参考，实际编写代码时请将不同类放到不同java文件中，并灵活根据需要修改其内容。
 
 ### 设计符号表
 
@@ -178,11 +176,133 @@ Program (1)
 
 下面我们将介绍几种Antlr4中使用的值传递机制供大家参考，以完成值传递流程。
 
+> 在收集信息和计算数值的时候，最方便和快捷的方法就是传递参数和使用方法返回值，而不是使用一些类成员变量和所谓的全局变量。但问题在于，Antlr自动生成的listener监听器方法是不支持自定义返回值和参数的，同样，Antlr生成的visitor方法也不支持自定义参数（在Java中用泛型支持了自定义返回值）。
 
+#### 使用Visitor遍历语法分析树
+
+在使用Antlr生成对应的visitor代码后，可以看到生成的泛型类`CmmParserVisitor` ，并且其中所有的函数返回值都是由泛型定义的，默认都是`null` 。要想实现自定义的返回值类型，我们可以新建一个visitor类继承该泛型类，并且在定义类的时候初始化父类的`T` ，如下
+
+```java
+public class CmmSemanticVisitor extends CmmParserBaseVisitor<XXX> {
+    @Override
+    public XXX visit(ParseTree tree) {
+        ...
+    }
+
+    @Override
+    public XXX visitTerminal(TerminalNode node) {
+        ...
+    }
+    @Override
+    public XXX visitProgram(CmmParser.ProgramContext ctx) {
+        ...
+    }
+
+    @Override
+    public XXX visitExtDef(CmmParser.ExtDefContext ctx) {
+        ...
+    }
+}
+```
+
+在<>内部，我们就可以指定具体类替换掉`T` ，这样我们子类的所有方法返回值就会变为自定义的具体类，之后在方法中实现具体逻辑就好。
+
+不同的规则树需要返回的类型其实是不同的，如何统一为一个类型需要大家注意。
+
+#### 使用栈来模拟返回值
+
+Antlr生成的监听器方法是没有返回值的（`void` 类型），为了向更高层的调用者返回值，我们可以把目前监听器方法中的结果保存在当前监听器的成员变量中，函数调用的过程无非就是压栈和出栈的过程，那么我们就可以使用一个栈结构来临时推入返回值，在更高层的监听器方法中推出。
+
+这保证了事件方法在所有的监听器事件之间的执行顺序是正确的，但是不够优雅， 前一种带返回值的访问器较为规范，但是又需要我们手动触发对树节点的访问。
+
+```
+public class CmmSemanticListener extends CmmParserBaseListener{
+    // 不推荐使用java.util.Stack类
+    Deque<XXX> stack = new ArrayDeque<>();
+    ...
+    // specifier: structSpecifier| TYPE;
+    @Override public void exitSpecifier(CmmParser.SpecifierContext ctx) {
+        ...
+        // 得到这个specifier对应的具体类型对象后，压栈
+        stack.push(type)
+        ...
+    }
+    ...
+    // paramDec: specifier varDec;
+    @Override public void exitParamDec(CmmParser.ParamDecContext ctx) {
+        ...
+        // 得到访问完子树specifier后得到的类型
+        XXX type = stack.pop();
+        // 给vardec中得到的ID或者数组中的元素赋予类型
+        ...
+    }
+    ...
+}
+```
+
+当然，你也可以用栈来模拟参数的传递。复杂的语法中，你可以使用多个栈一起工作。
+
+#### 为树节点添加字段
+
+如果我们不在乎将用户编程语言与语法绑定，我们可以在规则文件中使用`[]` 为特定规则对应的树节点添加一个成员变量，例如
+
+```
+// 使用规则属性locals
+tag locals [String name]: ID;
+...
+// 仅仅使用[]
+defList[boolean inStruct]: def[$inStruct]*;
+compSt: LC defList[false] stmtList RC;
+structSpecifier: STRUCT optTag LC defList[true] RC | STRUCT tag;
+```
+
+使用`locals` 的意义在于这会让`[]` 中标记的字段成为对应树节点的成员变量&#x20;
+
+只使用`[]` 则不仅让`[]` 中标记的字段成为对应树节点的成员变量，还定义了这个树节点的构造方法需要的参数，需要由父节点在构造的时候传入，代码中由于`defList` 会出现在结构体中也可能出现在普通变量定义时，所以传入一个`boolean isStruct` 来标记其位置
+
+具体规则属性的使用可以参考[Rule Attribute Definitions](https://github.com/antlr/antlr4/blob/master/doc/parser-rules.md#rule-attribute-definitions)。
+
+#### 使用Map
+
+当然，我们可以使用一个全局的Map来将任意的值和树节点关联起来，父节点就可以通过子节点来访问到子节点关联的值，Antlr为我们提供了一个简单的帮助类`ParseTreeProperty`&#x20;
+
+```
+public class CmmSemanticListener extends CmmParserBaseListener{
+    ParseTreeProperty<XXX> values = new ParseTreeProperty<>();
+    ...
+    // specifier: structSpecifier| TYPE;
+    @Override public void exitSpecifier(CmmParser.SpecifierContext ctx) {
+        ...
+        // 得到这个specifier对应的具体类型对象后，与当前specifier绑定
+        values.put(ctx, type);
+        ...
+    }
+    ...
+    // paramDec: specifier varDec;
+    @Override public void exitParamDec(CmmParser.ParamDecContext ctx) {
+        ...
+        // 得到子树specifier绑定的类型对象
+        XXX type = values.get(ctx.specifier());
+        // 给vardec中得到的ID或者数组中的元素赋予类型
+        ...
+    }
+    ...
+}
+```
+
+如果你想使用自己定义的Map类，请确保该类从`IndentityHashMap` 中派生，并确保判断对象是否相等的条件正确。
+
+#### 提示
+
+以上方法除了第一种之外，其他的均适用于visitor与listener模式
+
+你可以在你的代码中使用以上一个或者多个方法
+
+一些规则备选分支数目较多，可以合理使用[Alternative Labels](https://github.com/antlr/antlr4/blob/master/doc/parser-rules.md#alternative-labels)
 
 ## 实验说明
 
-最本质的错误
+报错时仅需要报出最本质的错误，并且尽可能的进行合理恢复，留意报错的层级。
 
 本次实验代码量偏大，请大家保持良好的面向对象编码风格，系统地设计类的职责以及各个类之间的调用关系。
 
