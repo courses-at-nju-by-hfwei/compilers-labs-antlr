@@ -174,9 +174,11 @@ Program (1)
 
 以上只是最普通的一种值传递流程，或许会有更直接的方法来实现不同树之间的值传递。
 
+在收集信息和计算数值的时候，最方便和快捷的方法就是传递参数和使用方法返回值，而不是使用一些类成员变量和所谓的全局变量。但问题在于Antlr自动生成的listener监听器方法是不支持自定义返回值和参数的，同样，Antlr生成的visitor访问器方法也不支持自定义参数。
+
 下面我们将介绍几种Antlr4中使用的值传递机制供大家参考，以完成值传递流程。
 
-> 在收集信息和计算数值的时候，最方便和快捷的方法就是传递参数和使用方法返回值，而不是使用一些类成员变量和所谓的全局变量。但问题在于，Antlr自动生成的listener监听器方法是不支持自定义返回值和参数的，同样，Antlr生成的visitor方法也不支持自定义参数（在Java中用泛型支持了自定义返回值）。
+> 具体例子可以参考_The Definitive ANTLR 4 Reference (2nd Edition) Chapter 7.5_
 
 #### 使用Visitor遍历语法分析树
 
@@ -240,7 +242,7 @@ public class CmmSemanticListener extends CmmParserBaseListener{
 }
 ```
 
-当然，你也可以用栈来模拟参数的传递。复杂的语法中，你可以使用多个栈一起工作。
+当然，你也可以用栈来模拟参数的传递。复杂的分析情况下，你可以使用多个栈一起工作。
 
 #### 为树节点添加字段
 
@@ -298,11 +300,9 @@ public class CmmSemanticListener extends CmmParserBaseListener{
 
 #### 提示
 
-以上方法除了第一种仅使用于visitor模式外，其他的均适用于visitor与listener模式
-
-你可以在你的代码中使用以上一个或者多个方法
-
-一些规则备选分支数目较多，可以合理使用[Alternative Labels](https://github.com/antlr/antlr4/blob/master/doc/parser-rules.md#alternative-labels)
+1. 以上方法除了第一种仅使用于visitor模式外，其他的均适用于visitor与listener模式
+2. 你可以在你的代码中使用以上一个或者多个方法
+3. 一些规则备选分支数目较多，可以合理使用[Alternative Labels](https://github.com/antlr/antlr4/blob/master/doc/parser-rules.md#alternative-labels)
 
 ## 实验说明
 
