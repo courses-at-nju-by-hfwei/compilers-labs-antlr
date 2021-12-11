@@ -180,7 +180,7 @@ Program (1)
 
 #### 使用Visitor遍历语法分析树
 
-在使用Antlr生成对应的visitor代码后，可以看到生成的泛型类`CmmParserVisitor` ，并且其中所有的函数返回值都是由泛型定义的，默认都是`null` 。要想实现自定义的返回值类型，我们可以新建一个visitor类继承该泛型类，并且在定义类的时候初始化父类的`T` ，如下
+在使用Antlr生成对应的visitor代码后，可以看到生成的泛型类`CmmParserBaseVisitor` ，并且其中所有的函数返回值都是由泛型定义的，默认都是`null` 。要想实现自定义的返回值类型，我们可以新建一个visitor类继承该泛型类，并且在定义类的时候初始化父类的`T` ，如下
 
 ```java
 public class CmmSemanticVisitor extends CmmParserBaseVisitor<XXX> {
@@ -215,7 +215,7 @@ Antlr生成的监听器方法是没有返回值的（`void` 类型），为了�
 
 这保证了事件方法在所有的监听器事件之间的执行顺序是正确的，但是不够优雅， 前一种带返回值的访问器较为规范，但是又需要我们手动触发对树节点的访问。
 
-```
+```java
 public class CmmSemanticListener extends CmmParserBaseListener{
     // 不推荐使用java.util.Stack类
     Deque<XXX> stack = new ArrayDeque<>();
@@ -270,7 +270,7 @@ structSpecifier: STRUCT optTag LC defList[true] RC | STRUCT tag;
 
 当然，我们可以使用一个全局的Map来将任意的值和树节点关联起来，父节点就可以通过子节点来访问到子节点关联的值，Antlr为我们提供了一个简单的帮助类`ParseTreeProperty`&#x20;
 
-```
+```java
 public class CmmSemanticListener extends CmmParserBaseListener{
     ParseTreeProperty<XXX> values = new ParseTreeProperty<>();
     ...
@@ -294,11 +294,11 @@ public class CmmSemanticListener extends CmmParserBaseListener{
 }
 ```
 
-如果你想使用自己定义的Map类，请确保该类从`IndentityHashMap` 中派生，并确保判断对象是否相等的条件正确。
+如果你想使用自己定义的Map类，请确保该类从`IndentityHashMap` 中派生，并确保判断树节点对象是否相同的条件正确。
 
 #### 提示
 
-以上方法除了第一种之外，其他的均适用于visitor与listener模式
+以上方法除了第一种仅使用于visitor模式外，其他的均适用于visitor与listener模式
 
 你可以在你的代码中使用以上一个或者多个方法
 
