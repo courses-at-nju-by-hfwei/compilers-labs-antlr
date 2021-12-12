@@ -36,7 +36,7 @@ public enum Kind {
 
 * 基本类型的类无需存储其他内容
 * `ARRAY` 类需要存储其element类型以及element数量
-* `STRUCTURE` 类需要存储其每个成员类型
+* `STRUCTURE` 类需要存储其每个成员类型，对于非匿名结构体还需要存其结构体名
 * `FUNCTION` 类需要存储其返回类型以及每个参数的类型
 
 当然，你也可以根据你的理解，合理的实现不同的类型类。
@@ -51,7 +51,8 @@ public class Function extends Type {
     ...
 }
 public class Structure extends Type {
-
+    
+    private String name;
     private FieldList memberList;
     ...
 }
@@ -107,10 +108,11 @@ private int getHashIndex(String name) {
 至于在符号表里应该填什么，这取决于你本身，只要觉得方便，可以向符号表中填入任何内容，下面给出一种示范
 
 ```java
-// 使用散列表实现的符号表，链表解决hash冲突，散列表节点内容
+// 使用散列表实现的符号表，散列表节点内容如下
 public class HashNode {
     String name;
     Type type;
+    // 链表解决hash冲突
     HashNode next;
 }
 ```
