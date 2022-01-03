@@ -47,21 +47,21 @@ public enum Kind {
 public class Function extends Type {
 
     private Type returnType;
-    private FieldList paramList;
+    private Field paramListHead;
     ...
 }
 public class Structure extends Type {
     
     private String name;
-    private FieldList memberList;
+    private Field memberListHead;
     ...
 }
 // FieldList并不是一个Type，仅用来存储函数的参数以及结构体的成员
-public class FieldList {
+public class Field {
 
     private String name;
     private Type type;
-    private FieldList next;
+    private Field next;
     ...
 }
 ```
