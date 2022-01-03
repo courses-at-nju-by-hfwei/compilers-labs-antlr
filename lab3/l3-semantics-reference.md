@@ -56,7 +56,7 @@ public class Structure extends Type {
     private Field memberListHead;
     ...
 }
-// FieldList并不是一个Type，仅用来存储函数的参数以及结构体的成员
+// Field并不是一个Type，仅用来存储函数的参数以及结构体的成员
 public class Field {
 
     private String name;
