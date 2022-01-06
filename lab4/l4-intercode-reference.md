@@ -115,13 +115,80 @@ public enum OperandKind {
 
 > _本次实验对输入的Cmm语言增加了更多限制，请参考许畅老师的实验讲义Project\_3.pdf的4.1.1中的7个假设_
 
-在定义完相关的数据结构之后，你就需要再次对语法树进行遍历，并且对于不同的语法树节点生成不同的中间代码语句，注意，一个语法树节点可能会生成多行中间代码语句
+在定义完相关的数据结构之后，你就需要对语法树进行遍历，对于不同的语法树节点生成不同的中间代码语句段。
+
+你可以将生成中间代码的逻辑直接放到之前用于语义分析的`visitor` 或者`listener` 代码中，这样遍历一遍语法树就可以完成语义分析和中间代码生成工作，效率较高
+
+但是访问树节点的方法将会变得非常复杂，并且需要处理多种类型变量的传递和返回，而且在生成中间代码的时候也不需要访问语义分析那么多的树节点。
+
+所以我们还是推荐新建一个`visitor`和`listener` ，并以`InterCodeList` 类型以及`Operand` 类型的对象作为树节点之间需要传递的值，如何传递在L3中已经有了很详细的说明，这里就不再赘述，请灵活选用多种方法来实现你的翻译逻辑。
+
+如何翻译特定的树节点，在_Project\_3.pdf_的_4.2.5, 4.2.6, 4.2.7, 4.2.8_中已经有了很明确的说明（其中的translate_\__xxx就可以理解为Antlr中的`visitXXX` 以及`enterXXX` 和`exitXXX` ），请仔细阅读
+
+注意到在翻译`exp`的时候需要额外传入一个操作数`place` 用于存放exp计算出的表达式，请考虑`place` 的生成时机以及如何在语法树节点之间传递。
+
+请务必在理解之后再尝试着编写Java代码，你也需要适当修改一些语法单元的翻译模式，因为我们某些节点使用的语法规则并不与文中所使用的语法规则相同（例如`args` ），也可以将`sym_table` 作为全局变量，避免在树节点中的传递
+
+若需要翻译`exp: exp1 LB exp2 RB` ，即访问数组，翻译逻辑可以为
+
+1. 访问`exp1`，生成获取`baseAddr` 的中间代码
+2. 访问`exp2`，生成获取`index` 的中间代码
+3. 通过某个函数得到`exp1` 对应的`Array` 的元素大小`element_size`&#x20;
+4. 生成获取偏移量中间代码 `[offset = index * elementSize]`&#x20;
+5. 获取地址并直接赋给`place` ，即中间代码 `[place := baseAddr + offset]` 或者获取地址并取得值，再赋给`place` ，即中间代码`[realAddr := baseAddr + offset] + [place := *readAddr]` ，选择哪种取决于你整体的代码逻辑&#x20;
+
+结构体成员的访问方式也可以参考上述的翻译逻辑
+
+
+
+再具体到实际的java代码编写，下面给出翻译`fundec` 节点的代码示范（使用`visitor` 模式），仅仅用作逻辑参考，代码可用性无法保证
+
+```java
+public class CmmInterCodeGenerator extends CmmParserBaseVisitor<InterCodeList> {
+...
+    @Override
+    public InterCodeList visitFunDec(CmmParser.FunDecContext ctx) {
+        // 获取函数名
+        String functionName = ctx.ID().getText();
+        // 新建一个存储该函数名的Operand
+        Operand functionOp = new Operand(OperandKind.FUNCTION, functionName);
+        // funcDefineCode打印的中间代码为: FUNCTION XXX:
+        InterCode.MonoOpInterCode funcDefineCode = new InterCode.MonoOpInterCode(CodeKind.FUNCTION, functionOp);
+        // 从符号表中获得当前函数名对应的函数Type，并获得这个函数定义的形参
+        Field curParam = ((Function) table.getType(functionName)).getParamListHead();
+        // 遍历形参
+        while (curParam != null) {
+            // 生成函数参数声明的中间代码: PARAM xxx
+            Operand paramOp = new Operand(OperandKind.VARIABLE, curParam.getName());
+            InterCode paramCode = new InterCode.MonoOpCode(CodeKind.PARAM, paramOp);
+            // 添加到以funcDefineCode为头节点的链中
+            funcDefineCode.addInterCode(paramCode);
+            // 获取下一个形参
+            curParam = curParam.getNext();
+        }
+        return new InterCodeList(funcDefineCode);
+    }
+...
+}
+```
+
+接下来的任务就是根据前面介绍的翻译模式完成一系列的语法树节点翻译工作
+
+除了我们已经给出示范的，你还需要考虑包括数组访问、结构体访问、数组与结构体定义、变量初始化、 语法单元CompSt、语法单元StmtList在内的其他翻译模式，其中一些的翻译工作非常简单，就是将子节点生成的中间代码合并，例如`program extDef compSt stmtList` 等等。
 
 ### 打印中间代码
 
 > _中间代码的语法请参考许畅老师的实验讲义Project\_3.pdf的表1_
 
+在翻译完整棵语法树后，理想的情况就是生成的所有中间代码都存放在了`InterCodeList` 对象中，只需要对其成员`InterCode` 进行遍历打印即可。
+
+不同类型的`InterCode`对象有着不同的打印方式，你可以使用最简单的`if...else` 或者`swicth` 语句来进行打印工作，也可以尝试一些 java编程技巧来去掉大量的条件判断语句，鼓励大家在实验报告中描述你所采用的方法
+
 ## 实验说明
+
+请认真阅读Project\_3.pdf，务必在完全理解翻译模式的基础上进行编码
+
+若发现本文档有误或者考虑不周全，你可以与助教联系。
 
 \
 \
