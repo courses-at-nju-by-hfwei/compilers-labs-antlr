@@ -9,4 +9,6 @@
   * [L2-Parser-Reference](lab2/l2-parser-reference.md)
 * [Lab3](lab3/README.md)
   * [L3-Semantics-Reference](lab3/l3-semantics-reference.md)
+* [Lab4](lab4/README.md)
+  * [L4-Intercode-Reference](lab4/l4-intercode-reference.md)
 * [Develop-in-IDEA-Antlr](develop-in-idea-antlr.md)
