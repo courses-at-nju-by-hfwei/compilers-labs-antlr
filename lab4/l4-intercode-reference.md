@@ -4,7 +4,7 @@ description: Antlr中间代码生成实验指导
 
 # L4-Intercode-Reference
 
-本次实验的实现逻辑与你使用的编程语言和工具基本无关，本讲义只是对Antlr部分与Java部分进行额外补充，详细内容请参考实验讲义Project\_3.pdf
+本次实验的实现逻辑与你使用的编程语言和工具基本无关，本讲义只是对Java代码部分进行额外补充，详细内容请参考实验讲义Project\_3.pdf
 
 ## 实验介绍
 
@@ -35,9 +35,9 @@ description: Antlr中间代码生成实验指导
 
 ```java
 public abstract class InterCode {
-  	// 枚举类，可以参考Project_3.pdf的表1
+    // 枚举类，可以参考Project_3.pdf的表1
     CodeKind codeKind;
-  	// 指向下一条中间代码
+    // 指向下一条中间代码
     InterCode next;
   	...
     public static class MonoOpInterCode extends InterCode {
@@ -102,7 +102,7 @@ public enum OperandKind {
     ADDRESS,
     // 跳转标签
     LABEL,
-    // 
+    // 函数
     FUNCTION
 }
 ```
@@ -121,23 +121,23 @@ public enum OperandKind {
 
 但是访问树节点的方法将会变得非常复杂，并且需要处理多种类型变量的传递和返回，而且在生成中间代码的时候也不需要访问语义分析那么多的树节点。
 
-所以我们还是推荐新建一个`visitor`和`listener` ，并以`InterCodeList` 类型以及`Operand` 类型的对象作为树节点之间需要传递的值，如何传递在L3中已经有了很详细的说明，这里就不再赘述，请灵活选用多种方法来实现你的翻译逻辑。
+所以我们还是推荐新建一个`visitor`和`listener` ，并以`InterCodeList` 类型以及`Operand` 类型的对象作为树节点之间需要传递的值，如何传递在L3中已经有了很详细的示范，这里就不再赘述，请灵活选用多种方法来实现你的翻译逻辑。
 
-如何翻译特定的树节点，在_Project\_3.pdf_的_4.2.5, 4.2.6, 4.2.7, 4.2.8_中已经有了很明确的说明（其中的translate_\__xxx就可以理解为Antlr中的`visitXXX` 以及`enterXXX` 和`exitXXX` ），请仔细阅读
+如何翻译特定的树节点，在_Project\_3.pdf_的_4.2.5, 4.2.6, 4.2.7, 4.2.8_中有很明确的说明（其中的translate_\__xxx就可以理解为Antlr中的`visitXXX` 以及`enterXXX` 和`exitXXX` ），请仔细阅读
 
-注意到在翻译`exp`的时候需要额外传入一个操作数`place` 用于存放exp计算出的表达式，请考虑`place` 的生成时机以及如何在语法树节点之间传递。
+请务必在理解之后再尝试着编写Java代码，你也需要适当修改一些语法单元的翻译模式，因为我们某些节点使用的语法规则并不与文中所使用的语法规则相同（例如`args` ），修改传参，将`sym_table` 作为全局变量，避免在树节点中的传递。
 
-请务必在理解之后再尝试着编写Java代码，你也需要适当修改一些语法单元的翻译模式，因为我们某些节点使用的语法规则并不与文中所使用的语法规则相同（例如`args` ），也可以将`sym_table` 作为全局变量，避免在树节点中的传递
+注意到在翻译`exp`的时候需要额外传入一个操作数`place` 用于存放`exp` 计算出的表达式，请考虑`place` 的生成时机以及类型
 
 若需要翻译`exp: exp1 LB exp2 RB` ，即访问数组，翻译逻辑可以为
 
-1. 访问`exp1`，生成获取`baseAddr` 的中间代码
-2. 访问`exp2`，生成获取`index` 的中间代码
+1. 访问`exp1` 并传入创建的`baseAddr` 操作数，生成获取`baseAddr` 的中间代码
+2. 访问`exp2` 并传入创建的`index` 操作数，生成获取`index` 的中间代码
 3. 通过某个函数得到`exp1` 对应的`Array` 的元素大小`element_size`&#x20;
 4. 生成获取偏移量中间代码 `[offset = index * elementSize]`&#x20;
-5. 获取地址并直接赋给`place` ，即中间代码 `[place := baseAddr + offset]` 或者获取地址并取得值，再赋给`place` ，即中间代码`[realAddr := baseAddr + offset] + [place := *readAddr]` ，选择哪种取决于你整体的代码逻辑&#x20;
+5. 获取地址并直接赋给`place` ，即中间代码 `[place := baseAddr + offset]` ，并将`place` 的类型设置为`ADDRESS` ；或者获取地址并取得值，再赋给`place` ，即中间代码`[realAddr := baseAddr + offset] + [place := *readAddr]` ，选择哪种取决于你整体的代码逻辑。
 
-结构体成员的访问方式也可以参考上述的翻译逻辑
+结构体成员的访问方式也可以参考上述的翻译逻辑。
 
 
 
